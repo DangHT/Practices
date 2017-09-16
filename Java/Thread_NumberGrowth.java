@@ -7,6 +7,7 @@
  * @author 党昊天 <dht925nerd@126.com>
  * @version : 2017/9/9.
  */
+public class Thread_NumberGrowth {
 
     int[] array = new int[5];
 
