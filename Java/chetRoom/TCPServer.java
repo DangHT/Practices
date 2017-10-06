@@ -16,10 +16,15 @@ import java.net.Socket;
  * @date 2017/10/6
  * @version 2.0
  */
-public class Server extends ServerSocket {
+public class TCPServer extends ServerSocket {
     private static final int SERVER_PORT = 6789;
+    private String[] response = {
+            "OK!",
+            "Got it!",
+            "Roger that!"
+    };
 
-    public Server()throws IOException {
+    public Server() throws IOException {
         super(SERVER_PORT);
 
         try {
@@ -39,14 +44,18 @@ public class Server extends ServerSocket {
         private Socket client;
         private BufferedReader bufferedReader;
         private PrintWriter printWriter;
+        private String name;
+        private Random resp_num = new Random();
 
         public CreateServerThread(Socket s)throws IOException {
             client = s;
+            name = client.getInetAddress().getHostName();
 
             bufferedReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
             printWriter = new PrintWriter(client.getOutputStream(),true);
-            System.out.println("Client(" + getName() +") come in...");
+
+            System.out.println("Client(" + name +") come in...");
 
             start();
         }
@@ -60,13 +69,14 @@ public class Server extends ServerSocket {
                    and returns information containing "bye" to the client
                  */
                 while (!line.equals("bye")) {
-                    printWriter.println("continue, Client(" + getName() +")!");
+                    int s = resp_num.nextInt(response.length);
+                    printWriter.println(response[s]);
                     line = bufferedReader.readLine();
-                    System.out.println("Client(" + getName() +") say: " + line);
+                    System.out.println("Client(" + name +") : " + line);
                 }
-                printWriter.println("bye, Client(" + getName() +")!");
+                printWriter.println("bye, " + name +"!");
 
-                System.out.println("Client(" + getName() +") exit!");
+                System.out.println("Client(" + name +") exit!");
                 printWriter.close();
                 bufferedReader.close();
                 client.close();

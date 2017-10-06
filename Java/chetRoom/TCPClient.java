@@ -15,32 +15,41 @@ import java.net.Socket;
  * @date 2017/10/6
  * @version 2.0
  */
-public class TCPClient {
+public class TCPClient extends Socket {
+
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 6789;
+    PrintWriter outToServer = new PrintWriter(getOutputStream(), true);
+    BufferedReader inFromUser = new BufferedReader(new InputStreamReader(getInputStream()));
+
+    public Client() throws IOException {
+        super(SERVER_HOST, SERVER_PORT);
+        setSoTimeout(30000);
+    }
+
+    public void ConnectToServer() throws IOException {
+        /*
+           If the response from the server contains "bye", the link is broken
+         */
+        String serverResponse = "";
+        while (serverResponse.indexOf("bye") == -1) {
+            BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
+            outToServer.println(sysBuff.readLine());
+            outToServer.flush();
+
+            serverResponse = inFromUser.readLine();
+            System.out.println("Server : " + serverResponse);
+        }
+
+        outToServer.close();
+        inFromUser.close();
+        close();
+    }
+
     public static void main(String[] args) {
         try {
-            Socket client = new Socket("localhost", 6789);
-            client.setSoTimeout(30000);
-
-            PrintWriter outToServer = new PrintWriter(client.getOutputStream(), true);
-            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
-            /*
-               If the information returned from the server contains "bye", the link is broken
-             */
-            String sentence = "";
-            while (sentence.indexOf("bye") == -1) {
-                BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
-                outToServer.println(sysBuff.readLine());
-                outToServer.flush();
-
-                sentence = inFromUser.readLine();
-                System.out.println("Server say : " + sentence);
-            }
-
-            outToServer.close();
-            inFromUser.close();
-            client.close();
-
+            Client client = new Client();
+            client.ConnectToServer();
         } catch (IOException e) {
             e.printStackTrace();
         }
