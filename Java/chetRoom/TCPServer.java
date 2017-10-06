@@ -1,34 +1,81 @@
 package chetRoom;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * This program is to simulate a chetRoom.
- * This is version 1.0 and base on Client / Server mode
- * I let TCPClient pretend client_1 and TCPServer pretend client_2
- * The problem is the conversation must start with client_2 and end with client_1
- * This is Client_2
- * @author 党昊天 <dht925nerd@126.com>
- * @version 1.0
+ * This is chetRoom 2.0.
+ * This version supports multiple clients.
+ * The server provides a thread for each client
+ *
+ * @author dht925nerd@126.com
+ * @date 2017/10/6
+ * @version 2.0
  */
-public class TCPServer {
-    public static void main(String[] args) throws Exception {
-        String clientSentence;
-        String capitalizedSentence;
-        ServerSocket welcomeSocket = new ServerSocket(6789);
-        while(true) {
-            Socket connectionSocket = welcomeSocket.accept();
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            clientSentence = inFromClient.readLine();
-            System.out.println("FROM CLIENT: " + clientSentence);
-            capitalizedSentence = inFromUser.readLine() + '\n';
-            outToClient.writeBytes(capitalizedSentence);
+public class Server extends ServerSocket {
+    private static final int SERVER_PORT = 6789;
+
+    public Server()throws IOException {
+        super(SERVER_PORT);
+
+        try {
+            while (true) {
+                Socket socket = accept();
+                //When there is a request, start a thread
+                new CreateServerThread(socket);
+            }
+        }catch (IOException e) {
+        }finally {
+            close();
         }
+    }
+
+    //Server Thread
+    class CreateServerThread extends Thread {
+        private Socket client;
+        private BufferedReader bufferedReader;
+        private PrintWriter printWriter;
+
+        public CreateServerThread(Socket s)throws IOException {
+            client = s;
+
+            bufferedReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+
+            printWriter = new PrintWriter(client.getOutputStream(),true);
+            System.out.println("Client(" + getName() +") come in...");
+
+            start();
+        }
+
+        public void run() {
+            try {
+                String line = bufferedReader.readLine();
+
+                /*
+                   If the client enters "bye", the link is broken,
+                   and returns information containing "bye" to the client
+                 */
+                while (!line.equals("bye")) {
+                    printWriter.println("continue, Client(" + getName() +")!");
+                    line = bufferedReader.readLine();
+                    System.out.println("Client(" + getName() +") say: " + line);
+                }
+                printWriter.println("bye, Client(" + getName() +")!");
+
+                System.out.println("Client(" + getName() +") exit!");
+                printWriter.close();
+                bufferedReader.close();
+                client.close();
+            }catch (IOException e) {
+            }
+        }
+    }
+
+    public static void main(String[] args)throws IOException {
+        new Server();
     }
 }

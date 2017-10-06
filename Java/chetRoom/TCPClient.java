@@ -1,34 +1,48 @@
 package chetRoom;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * This program is to simulate a chetRoom.
- * This is version 1.0 and base on Client / Server mode
- * I let TCPClient pretend client_1 and TCPServer pretend client_2
- * The problem is the conversation must start with client_2 and end with client_1
- * This is Client_1
- * @author 党昊天 <dht925nerd@126.com>
- * @version 1.0
+ * This is chetRoom 2.0.
+ * This version supports multiple clients.
+ * The server provides a thread for each client
+ *
+ * @author dht925nerd@126.com
+ * @date 2017/10/6
+ * @version 2.0
  */
 public class TCPClient {
-    public static void main(String[] args) throws Exception {
-        String sentence;
-        String modifiedSentence;
-        while (true) {
-            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            Socket clientSocket = new Socket("localhost", 6789);
-            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            sentence = inFromUser.readLine();
-            if (sentence.equals("exit")) break;
-            outToServer.writeBytes(sentence + '\n');
-            modifiedSentence = inFromServer.readLine();
-            System.out.println("FROM SERVER: " + modifiedSentence);
-            clientSocket.close();
+    public static void main(String[] args) {
+        try {
+            Socket client = new Socket("localhost", 6789);
+            client.setSoTimeout(30000);
+
+            PrintWriter outToServer = new PrintWriter(client.getOutputStream(), true);
+            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(client.getInputStream()));
+
+            /*
+               If the information returned from the server contains "bye", the link is broken
+             */
+            String sentence = "";
+            while (sentence.indexOf("bye") == -1) {
+                BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
+                outToServer.println(sysBuff.readLine());
+                outToServer.flush();
+
+                sentence = inFromUser.readLine();
+                System.out.println("Server say : " + sentence);
+            }
+
+            outToServer.close();
+            inFromUser.close();
+            client.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
