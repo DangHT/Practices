@@ -56,6 +56,7 @@ public class TCPServer extends ServerSocket {
             printWriter = new PrintWriter(client.getOutputStream(),true);
 
             System.out.println("Client(" + name +") come in...");
+            printWriter.println("Connection succeed!");
 
             start();
         }

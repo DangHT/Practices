@@ -28,6 +28,7 @@ public class TCPClient extends Socket {
     }
 
     public void ConnectToServer() throws IOException {
+        System.out.println("Please enter any words to connect:");
         /*
            If the response from the server contains "bye", the link is broken
          */
