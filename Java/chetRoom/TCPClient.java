@@ -15,15 +15,21 @@ import java.net.Socket;
  * @date 2017/10/6
  * @version 2.0
  */
-public class TCPClient extends Socket {
+public class TCPClient extends Socket{
 
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 6789;
+    private String name;
     PrintWriter outToServer = new PrintWriter(getOutputStream(), true);
     BufferedReader inFromUser = new BufferedReader(new InputStreamReader(getInputStream()));
+    BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
 
-    public Client() throws IOException {
+    public TCPClient() throws IOException {
         super(SERVER_HOST, SERVER_PORT);
+        System.out.println("Please enter your name:");
+        name = sysBuff.readLine();
+        outToServer.println(name);
+        outToServer.flush();
         setSoTimeout(30000);
     }
 
@@ -34,7 +40,6 @@ public class TCPClient extends Socket {
          */
         String serverResponse = "";
         while (serverResponse.indexOf("bye") == -1) {
-            BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
             outToServer.println(sysBuff.readLine());
             outToServer.flush();
 
@@ -49,8 +54,8 @@ public class TCPClient extends Socket {
 
     public static void main(String[] args) {
         try {
-            Client client = new Client();
-            client.ConnectToServer();
+            TCPClient TCPClient = new TCPClient();
+            TCPClient.ConnectToServer();
         } catch (IOException e) {
             e.printStackTrace();
         }

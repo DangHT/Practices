@@ -24,7 +24,7 @@ public class TCPServer extends ServerSocket {
             "Roger that!"
     };
 
-    public Server() throws IOException {
+    public TCPServer() throws IOException {
         super(SERVER_PORT);
 
         try {
@@ -39,31 +39,34 @@ public class TCPServer extends ServerSocket {
         }
     }
 
-    //Server Thread
+    //TCPServer Thread
     class CreateServerThread extends Thread {
         private Socket client;
-        private BufferedReader bufferedReader;
-        private PrintWriter printWriter;
+        private BufferedReader inFromClient;
+        private PrintWriter outToClient;
         private String name;
         private Random resp_num = new Random();
 
         public CreateServerThread(Socket s)throws IOException {
             client = s;
-            name = client.getInetAddress().getHostName();
 
-            bufferedReader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            inFromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            outToClient = new PrintWriter(client.getOutputStream(),true);
+            name = inFromClient.readLine();
+            if (name == null
+                    || name.isEmpty()
+                    || name.trim().isEmpty())
+                name = client.getInetAddress().getHostName();
 
-            printWriter = new PrintWriter(client.getOutputStream(),true);
-
-            System.out.println("Client(" + name +") come in...");
-            printWriter.println("Connection succeed!");
+            System.out.println("TCPClient(" + name +") come in...");
+            outToClient.println("Connection succeed!Welcome, " + name + "!");
 
             start();
         }
 
         public void run() {
             try {
-                String line = bufferedReader.readLine();
+                String line = inFromClient.readLine();
 
                 /*
                    If the client enters "bye", the link is broken,
@@ -71,15 +74,15 @@ public class TCPServer extends ServerSocket {
                  */
                 while (!line.equals("bye")) {
                     int s = resp_num.nextInt(response.length);
-                    printWriter.println(response[s]);
-                    line = bufferedReader.readLine();
+                    outToClient.println(response[s]);
+                    line = inFromClient.readLine();
                     System.out.println("Client(" + name +") : " + line);
                 }
-                printWriter.println("bye, " + name +"!");
+                outToClient.println("bye, " + name +"!");
 
                 System.out.println("Client(" + name +") exit!");
-                printWriter.close();
-                bufferedReader.close();
+                outToClient.close();
+                inFromClient.close();
                 client.close();
             }catch (IOException e) {
             }
@@ -87,6 +90,6 @@ public class TCPServer extends ServerSocket {
     }
 
     public static void main(String[] args)throws IOException {
-        new Server();
+        new TCPServer();
     }
 }
