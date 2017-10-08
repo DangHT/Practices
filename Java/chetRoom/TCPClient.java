@@ -7,13 +7,13 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * This is chetRoom 2.0.
+ * This is chetRoom 2.4.
  * This version supports multiple clients.
  * The server provides a thread for each client
  *
  * @author dht925nerd@126.com
- * @date 2017/10/6
- * @version 2.0
+ * @date 2017/10/8
+ * @version 2.4
  */
 public class TCPClient extends Socket{
 
@@ -21,7 +21,7 @@ public class TCPClient extends Socket{
     private static final int SERVER_PORT = 6789;
     private String name;
     PrintWriter outToServer = new PrintWriter(getOutputStream(), true);
-    BufferedReader inFromUser = new BufferedReader(new InputStreamReader(getInputStream()));
+    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(getInputStream()));
     BufferedReader sysBuff = new BufferedReader(new InputStreamReader(System.in));
 
     public TCPClient() throws IOException {
@@ -29,12 +29,11 @@ public class TCPClient extends Socket{
         System.out.println("Please enter your name:");
         name = sysBuff.readLine();
         outToServer.println(name);
-        outToServer.flush();
+        System.out.println(inFromServer.readLine());
         setSoTimeout(30000);
     }
 
     public void ConnectToServer() throws IOException {
-        System.out.println("Please enter any words to connect:");
         /*
            If the response from the server contains "bye", the link is broken
          */
@@ -43,12 +42,12 @@ public class TCPClient extends Socket{
             outToServer.println(sysBuff.readLine());
             outToServer.flush();
 
-            serverResponse = inFromUser.readLine();
+            serverResponse = inFromServer.readLine();
             System.out.println("Server : " + serverResponse);
         }
 
         outToServer.close();
-        inFromUser.close();
+        inFromServer.close();
         close();
     }
 
