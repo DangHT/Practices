@@ -24,7 +24,7 @@ public class Main {
             Process p = new Process(runTime, inTime);
             processes.add(p);
         }
-        Algorithms.FCFS(processes);
+        Algorithms.SJF(processes);
     }
 
 }
